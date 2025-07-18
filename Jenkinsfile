@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "flask-app"
+        IMAGE_NAME = "dummy-flask-app"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
     }
@@ -17,7 +17,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                cd flask_app/src
+                cd src
                 docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
                 '''
             }
