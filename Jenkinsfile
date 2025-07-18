@@ -10,7 +10,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'github', url: 'https://github.com/lerkasan/dummy-flask-app.git'
+                git url: 'https://github.com/lerkasan/dummy-flask-app.git',
+                    credentialsId: 'github',
+                    branch: 'main'
             }
         }
 
