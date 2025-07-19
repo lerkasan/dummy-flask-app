@@ -38,7 +38,7 @@ pipeline {
             // }
 
             steps {
-                container('python') {    
+                // container('python') {    
                     sh '''
                     pip3 install -r requirements.txt
                     pytest tests/ --doctest-modules --junitxml=test-results.xml
@@ -55,7 +55,7 @@ pipeline {
                     qualityGates: [
                         [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
                     ])
-                }
+                // }
             }
         }    
 
