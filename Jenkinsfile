@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent { 
+        label 'dind' 
+    }
 
     environment {
         IMAGE_NAME = "dummy-flask-app"
@@ -17,6 +19,9 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            // agent {
+            //     docker { image 'docker:28.3.2-dind-rootless' }
+            // }
             steps {
                 sh '''
                 cd src
@@ -26,6 +31,9 @@ pipeline {
         }
 
         stage('Push Docker Image') {
+            // agent {
+            //     docker { image 'docker:28.3.2-dind-rootless' }
+            // }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
