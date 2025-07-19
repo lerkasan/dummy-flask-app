@@ -25,6 +25,7 @@ pipeline {
             steps {
                 sh '''
                 cd src
+                sleep 180
                 docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
                 '''
             }
