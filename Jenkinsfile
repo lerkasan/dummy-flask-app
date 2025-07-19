@@ -1,9 +1,9 @@
 pipeline {
-    agent { 
-        label 'dind' 
-    }
+    // agent { 
+    //     label 'dind' 
+    // }
 
-    // agent none
+    agent none
 
     environment {
         GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true).trim()
@@ -15,9 +15,9 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            // agent { 
-            //     label 'dind' 
-            // }
+            agent { 
+                label 'python' 
+            }
             steps {
                 git url: 'https://github.com/lerkasan/dummy-flask-app.git',
                     credentialsId: 'github',
@@ -60,9 +60,9 @@ pipeline {
         }    
 
         stage('Build Docker Image') {
-            // agent { 
-            //     label 'dind' 
-            // }
+            agent { 
+                label 'dind' 
+            }
             steps {
                 sh '''
                 cd src
@@ -73,9 +73,9 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            // agent { 
-            //     label 'dind' 
-            // }
+            agent { 
+                label 'dind' 
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
@@ -89,12 +89,12 @@ pipeline {
 }
 
 
-recordCoverage(tools: [[parser: 'JACOCO']],
-        id: 'jacoco', name: 'JaCoCo Coverage',
-        sourceCodeRetention: 'EVERY_BUILD',
-        qualityGates: [
-                [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
-                [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
+// recordCoverage(tools: [[parser: 'JACOCO']],
+//         id: 'jacoco', name: 'JaCoCo Coverage',
+//         sourceCodeRetention: 'EVERY_BUILD',
+//         qualityGates: [
+//                 [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
+//                 [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
 
 
 // https://medium.com/geekculture/jenkins-pipeline-python-and-docker-altogether-442d38119484
