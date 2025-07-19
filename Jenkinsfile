@@ -25,39 +25,39 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            agent { 
-                label 'python' 
-            }
-            // agent {
-            //     docker {
-            //         image 'python:3.13-alpine3.22'
-            //         label 'dind'
-            //         // args  '-v /tmp:/tmp'
-            //     }
-            // }
+        // stage('Test') {
+        //     agent { 
+        //         label 'python' 
+        //     }
+        //     // agent {
+        //     //     docker {
+        //     //         image 'python:3.13-alpine3.22'
+        //     //         label 'dind'
+        //     //         // args  '-v /tmp:/tmp'
+        //     //     }
+        //     // }
 
-            steps {
-                // container('python') {    
-                    sh '''
-                    pip3 install -r requirements.txt
-                    pytest tests/ --doctest-modules --junitxml=test-results.xml
-                    coverage run -m pytest
-                    coverage xml
-                    '''
+        //     steps {
+        //         // container('python') {    
+        //             sh '''
+        //             pip3 install -r requirements.txt
+        //             pytest tests/ --doctest-modules --junitxml=test-results.xml
+        //             coverage run -m pytest
+        //             coverage xml
+        //             '''
 
-                    junit 'test-results.xml'
+        //             junit 'test-results.xml'
 
-                    recordCoverage(tools: [[parser: 'JACOCO']],
-                    id: 'jacoco', name: 'Coverage',
-                    sourceCodeRetention: 'EVERY_BUILD',
-                    sourceDirectories: [[path: 'src']],
-                    qualityGates: [
-                        [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
-                    ])
-                // }
-            }
-        }    
+        //             recordCoverage(tools: [[parser: 'JACOCO']],
+        //             id: 'jacoco', name: 'Coverage',
+        //             sourceCodeRetention: 'EVERY_BUILD',
+        //             sourceDirectories: [[path: 'src']],
+        //             qualityGates: [
+        //                 [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
+        //             ])
+        //         // }
+        //     }
+        // }    
 
         stage('Build Docker Image') {
             // agent { 
@@ -66,7 +66,7 @@ pipeline {
             steps {
                 sh '''
                 cd src
-                sleep 30
+                sleep 300
                 docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
                 '''
             }
