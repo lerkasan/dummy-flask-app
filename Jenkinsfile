@@ -4,8 +4,10 @@ pipeline {
     }
 
     environment {
+        GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true)
+        GIT_COMMIT_SHORT_SHA = ${GIT_COMMIT_SHA,length=8}
         IMAGE_NAME = "dummy-flask-app"
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
     }
 
@@ -19,22 +21,15 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            // agent {
-            //     docker { image 'docker:28.3.2-dind-rootless' }
-            // }
             steps {
                 sh '''
                 cd src
-                sleep 180
                 docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
                 '''
             }
         }
 
         stage('Push Docker Image') {
-            // agent {
-            //     docker { image 'docker:28.3.2-dind-rootless' }
-            // }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
