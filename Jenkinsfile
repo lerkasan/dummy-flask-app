@@ -5,7 +5,7 @@ pipeline {
 
     environment {
         GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true)
-        GIT_COMMIT_SHORT_SHA = ${GIT_COMMIT_SHA,length=8}
+        GIT_COMMIT_SHORT_SHA = "${GIT_COMMIT_SHA,length=8}"
         IMAGE_NAME = "dummy-flask-app"
         IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
