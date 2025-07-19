@@ -11,7 +11,7 @@ COPY main.py wsgi.py requirements.txt ./
 
 RUN apk add --no-cache --virtual .build-deps gcc linux-headers musl-dev pcre-dev && \
   python3 -m venv "$VIRTUAL_ENV" && \
-  pip3 install --upgrade pip && \
+  pip3 install --upgrade pip uwsgi && \
   pip3 install -r requirements.txt --no-cache-dir && \
   apk --purge del .build-deps && \
   rm -rf /var/cache/apk/*
