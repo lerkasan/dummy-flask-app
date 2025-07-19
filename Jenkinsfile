@@ -3,6 +3,8 @@ pipeline {
         label 'dind' 
     }
 
+    // agent none
+
     environment {
         GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true).trim()
         GIT_COMMIT_SHORT_SHA = sh (script: "git rev-parse --short HEAD", returnStdout: true).trim()
@@ -13,6 +15,9 @@ pipeline {
 
     stages {
         stage('Checkout') {
+            agent { 
+                label 'dind' 
+            }
             steps {
                 git url: 'https://github.com/lerkasan/dummy-flask-app.git',
                     credentialsId: 'github',
@@ -20,7 +25,34 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            agent { 
+                label 'python' 
+            }
+            steps {
+                sh '''
+                pip3 install -r requirements.txt
+                pytest tests/ --doctest-modules --junitxml=test-results.xml
+                coverage run -m pytest
+                coverage xml
+                '''
+                
+                junit 'test-results.xml'
+
+                recordCoverage(tools: [[parser: 'JACOCO']],
+                id: 'jacoco', name: 'Coverage',
+                sourceCodeRetention: 'EVERY_BUILD',
+                sourceDirectories: [[path: 'src']],
+                qualityGates: [
+                    [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
+                ])
+            }
+        }
+
         stage('Build Docker Image') {
+            agent { 
+                label 'dind' 
+            }
             steps {
                 sh '''
                 cd src
@@ -31,6 +63,9 @@ pipeline {
         }
 
         stage('Push Docker Image') {
+            // agent { 
+            //     label 'dind' 
+            // }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
@@ -42,3 +77,13 @@ pipeline {
         }
     }
 }
+
+
+recordCoverage(tools: [[parser: 'JACOCO']],
+        id: 'jacoco', name: 'JaCoCo Coverage',
+        sourceCodeRetention: 'EVERY_BUILD',
+        qualityGates: [
+                [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
+                [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
+
+
