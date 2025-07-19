@@ -15,9 +15,9 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            agent { 
-                label 'dind' 
-            }
+            // agent { 
+            //     label 'dind' 
+            // }
             steps {
                 git url: 'https://github.com/lerkasan/dummy-flask-app.git',
                     credentialsId: 'github',
@@ -29,13 +29,13 @@ pipeline {
             // agent { 
             //     label 'python' 
             // }
-            agent {
-                docker {
-                    image 'python:3.13-alpine3.22'
-                    label 'python'
-                    // args  '-v /tmp:/tmp'
-                }
-            }
+            // agent {
+            //     docker {
+            //         image 'python:3.13-alpine3.22'
+            //         label 'python'
+            //         // args  '-v /tmp:/tmp'
+            //     }
+            // }
 
             steps {
                 container('python') {    
@@ -60,9 +60,9 @@ pipeline {
         }    
 
         stage('Build Docker Image') {
-            agent { 
-                label 'dind' 
-            }
+            // agent { 
+            //     label 'dind' 
+            // }
             steps {
                 sh '''
                 cd src
