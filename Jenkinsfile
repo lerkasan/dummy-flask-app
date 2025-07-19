@@ -26,9 +26,17 @@ pipeline {
         }
 
         stage('Test') {
-            agent { 
-                label 'python' 
+            // agent { 
+            //     label 'python' 
+            // }
+            agent {
+                docker {
+                    image 'python:3.13-alpine3.22'
+                    label 'python'
+                    // args  '-v /tmp:/tmp'
+                }
             }
+
             steps {
                 sh '''
                 pip3 install -r requirements.txt
@@ -36,7 +44,7 @@ pipeline {
                 coverage run -m pytest
                 coverage xml
                 '''
-                
+
                 junit 'test-results.xml'
 
                 recordCoverage(tools: [[parser: 'JACOCO']],
