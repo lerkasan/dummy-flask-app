@@ -1,9 +1,9 @@
 pipeline {
-    // agent { 
-    //     label 'dind' 
-    // }
+    agent { 
+        label 'dind' 
+    }
 
-    agent none
+    // agent none
 
     environment {
         GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true).trim()
@@ -87,7 +87,6 @@ pipeline {
         }
     }
 }
-
 
 // recordCoverage(tools: [[parser: 'JACOCO']],
 //         id: 'jacoco', name: 'JaCoCo Coverage',
