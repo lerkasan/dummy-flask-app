@@ -26,9 +26,9 @@ pipeline {
         }
 
         stage('Test') {
-            // agent { 
-            //     label 'python' 
-            // }
+            agent { 
+                label 'python' 
+            }
             // agent {
             //     docker {
             //         image 'python:3.13-alpine3.22'
