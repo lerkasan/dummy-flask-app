@@ -60,23 +60,15 @@ pipeline {
         }    
 
         stage('Build Docker Image') {
-            agent { 
-                label 'dind' 
-            }
             steps {
-                sh '''
-                cd src
-                sleep 20
-                docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
-                '''
+                sh 'sleep 10' # Adding sleep to ensure Docker Daemon is ready in dind container
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG ./src'
             }
         }
 
         stage('Push Docker Image') {
-            agent { 
-                label 'dind' 
-            }
             steps {
+                sh 'sleep 10' # Adding sleep to ensure Docker Daemon is ready in dind container
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
                     echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USERNAME" --password-stdin
