@@ -38,24 +38,26 @@ pipeline {
             }
 
             steps {
-                sh '''
-                pip3 install -r requirements.txt
-                pytest tests/ --doctest-modules --junitxml=test-results.xml
-                coverage run -m pytest
-                coverage xml
-                '''
+                container('python') {    
+                    sh '''
+                    pip3 install -r requirements.txt
+                    pytest tests/ --doctest-modules --junitxml=test-results.xml
+                    coverage run -m pytest
+                    coverage xml
+                    '''
 
-                junit 'test-results.xml'
+                    junit 'test-results.xml'
 
-                recordCoverage(tools: [[parser: 'JACOCO']],
-                id: 'jacoco', name: 'Coverage',
-                sourceCodeRetention: 'EVERY_BUILD',
-                sourceDirectories: [[path: 'src']],
-                qualityGates: [
-                    [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
-                ])
+                    recordCoverage(tools: [[parser: 'JACOCO']],
+                    id: 'jacoco', name: 'Coverage',
+                    sourceCodeRetention: 'EVERY_BUILD',
+                    sourceDirectories: [[path: 'src']],
+                    qualityGates: [
+                        [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
+                    ])
+                }
             }
-        }
+        }    
 
         stage('Build Docker Image') {
             agent { 
@@ -95,3 +97,4 @@ recordCoverage(tools: [[parser: 'JACOCO']],
                 [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
 
 
+// https://medium.com/geekculture/jenkins-pipeline-python-and-docker-altogether-442d38119484
