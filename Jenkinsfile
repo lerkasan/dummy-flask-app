@@ -40,7 +40,7 @@ pipeline {
             steps {
                 // container('python') {    
                     sh '''
-                    pip3 install -r requirements.txt
+                    pip3 install -r src/requirements.txt
                     pytest tests/ --doctest-modules --junitxml=test-results.xml
                     coverage run -m pytest
                     coverage xml
