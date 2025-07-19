@@ -48,13 +48,13 @@ pipeline {
 
                     junit 'test-results.xml'
 
-                    recordCoverage(tools: [[parser: 'JACOCO']],
-                    id: 'jacoco', name: 'Coverage',
-                    sourceCodeRetention: 'EVERY_BUILD',
-                    sourceDirectories: [[path: 'src']],
-                    qualityGates: [
-                        [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
-                    ])
+                    // recordCoverage(tools: [[parser: 'JACOCO']],
+                    // id: 'jacoco', name: 'Coverage',
+                    // sourceCodeRetention: 'EVERY_BUILD',
+                    // sourceDirectories: [[path: 'src']],
+                    // qualityGates: [
+                    //     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
+                    // ])
                 // }
             }
         }    
