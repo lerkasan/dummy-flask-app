@@ -32,7 +32,6 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.13-alpine3.22'
-                    label 'python'
                     // args  '-v /tmp:/tmp'
                 }
             }
