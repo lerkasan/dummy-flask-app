@@ -12,6 +12,9 @@ pipeline {
         IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
         APP_NAMESPACE = "dummy-flask-app"
+        SONAR_ORGANIZATION = "lerkasan"
+        SONAR_PROJECT_KEY = "lerkasan_rsschool-devops-course-tasks"
+        SONAR_HOST_URL = "https://sonarcloud.io"
     }
 
     stages {
@@ -50,7 +53,19 @@ pipeline {
                     //     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
                     // ])
                 // }
-            }
+
+                    withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_TOKEN')]) { 
+                    sh '''
+                    sonar-scanner -Dsonar.organization="${SONAR_ORGANIZATION}" \
+                                  -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+                                  -Dsonar.sources=./src \
+                                  -Dsonar.host.url=${SONAR_HOST_URL} \
+                                  -Dsonar.login="${SONAR_TOKEN}" \
+                                  -Dsonar.qualitygate.wait=true
+                    '''
+                }
+            }    
+
         }    
 
         stage('Build Docker Image') {
@@ -112,12 +127,6 @@ pipeline {
     }
 }
 
-// recordCoverage(tools: [[parser: 'JACOCO']],
-//         id: 'jacoco', name: 'JaCoCo Coverage',
-//         sourceCodeRetention: 'EVERY_BUILD',
-//         qualityGates: [
-//                 [threshold: 60.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
-//                 [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]])
-
 
 // https://medium.com/geekculture/jenkins-pipeline-python-and-docker-altogether-442d38119484
+
