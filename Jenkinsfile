@@ -61,7 +61,7 @@ pipeline {
                                   -Dsonar.sources=./src \
                                   -Dsonar.host.url=${SONAR_HOST_URL} \
                                   -Dsonar.login="${SONAR_TOKEN}" \
-                                  -Dsonar.qualitygate.wait=false
+                                  -Dsonar.qualitygate.wait=true
                     '''
                 }
             }    
@@ -98,6 +98,30 @@ pipeline {
             }
         }
 
+        stage('Puplish Helm Chart') {
+            agent { 
+                label 'python' 
+            }
+            environment {
+                IMAGE_SHA = "${image_sha}"
+            }
+            steps {
+                withCredentials([
+                usernamePassword(
+                  credentialsId: 'dockerhub',
+                  usernameVariable: 'REGISTRY_USERNAME', 
+                  passwordVariable: 'REGISTRY_PASSWORD'
+                )
+              ]) {  
+                    sh '''
+                    echo "${REGISTRY_PASSWORD}" | helm registry login registry-1.docker.io -u "${REGISTRY_USERNAME}" --password-stdin
+                    helm package ./chart/
+                    helm push "$(yq -r .name ./chart/Chart.yaml)-$(yq -r .version ./chart/Chart.yaml).tgz" "oci://registry-1.docker.io/${REGISTRY_USERNAME}"
+                    '''
+                }    
+            }
+        }   
+
         stage('Deploy') {
             agent { 
                 label 'python' 
@@ -107,20 +131,13 @@ pipeline {
             }
             steps {
                 withCredentials([
-                // file(
-                //   credentialsId: 'kubeconfig',
-                //   variable: 'KUBECONFIG'
-                // ),
                 usernamePassword(
                   credentialsId: 'dockerhub',
                   usernameVariable: 'REGISTRY_USERNAME', 
                   passwordVariable: 'REGISTRY_PASSWORD'
                 )
               ]) {  
-                    sh '''
-                    helm ls
-                    helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace "${APP_NAMESPACE}" -f ./chart/values.yaml dummy-flask-app ./chart
-                    '''
+                    sh 'helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace "${APP_NAMESPACE}" -f ./chart/values.yaml dummy-flask-app ./chart'
                 }    
             }
         }            
