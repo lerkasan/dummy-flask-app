@@ -13,7 +13,7 @@ pipeline {
         REGISTRY = "docker.io/lerkasan"
         APP_NAMESPACE = "dummy-flask-app"
         SONAR_ORGANIZATION = "lerkasan"
-        SONAR_PROJECT_KEY = "lerkasan_rsschool-devops-course-tasks"
+        SONAR_PROJECT_KEY = "lerkasan_dummy-flask-app"
         SONAR_HOST_URL = "https://sonarcloud.io"
     }
 
