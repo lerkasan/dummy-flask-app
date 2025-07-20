@@ -103,8 +103,6 @@ pipeline {
                 )
               ]) {  
                     sh '''
-                    echo "${IMAGE_SHA}"
-                    echo "${REGISTRY_PASSWORD}" | docker login -u "${REGISTRY_USERNAME}" --password-stdin
                     helm ls
                     helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace ${APP_NAMESPACE}" -f ./chart/values.yaml dummy-flask-app ./chart
                     '''
