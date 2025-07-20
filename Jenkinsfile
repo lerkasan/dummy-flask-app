@@ -11,6 +11,7 @@ pipeline {
         IMAGE_NAME = "dummy-flask-app"
         IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
+        APP_NAMESPACE = "dummy-flask-app"
     }
 
     stages {
@@ -64,7 +65,12 @@ pipeline {
             steps {
                 // Adding sleep to ensure Docker Daemon is ready in dind container
                 sh 'sleep 10'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub', 
+                        usernameVariable: 'REGISTRY_USERNAME', 
+                        passwordVariable: 'REGISTRY_PASSWORD'
+                )]) {
                     sh '''
                     echo "${REGISTRY_PASSWORD}" | docker login -u "${REGISTRY_USERNAME}" --password-stdin
                     docker push "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
@@ -84,11 +90,23 @@ pipeline {
             environment {
                 IMAGE_SHA = "${image_sha}"
             }
-            steps {  
-                sh '''
-                echo "${IMAGE_SHA}"
-                helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" -f ./chart/values.yaml dummy-flask-app ./chart
-                '''
+            steps {
+                withCredentials([
+                file(
+                  credentialsId: 'kubeconfig',
+                  variable: 'KUBECONFIG'
+                ),
+                usernamePassword(
+                  credentialsId: 'dockerhub',
+                  usernameVariable: 'REGISTRY_USERNAME', 
+                  passwordVariable: 'REGISTRY_PASSWORD'
+                )
+              ]) {  
+                    sh '''
+                    echo "${IMAGE_SHA}"
+                    helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace ${APP_NAMESPACE}" -f ./chart/values.yaml dummy-flask-app ./chart
+                    '''
+                }    
             }
         }            
     }
