@@ -29,13 +29,6 @@ pipeline {
             agent { 
                 label 'python' 
             }
-            // agent {
-            //     docker {
-            //         image 'python:3.13-alpine3.22'
-            //         label 'dind'
-            //         // args  '-v /tmp:/tmp'
-            //     }
-            // }
 
             steps {
                 // container('python') {    
@@ -63,7 +56,7 @@ pipeline {
             steps {
                 // Adding sleep to ensure Docker Daemon is ready in dind container
                 sh 'sleep 10'
-                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG ./src'
+                sh 'docker build -t "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" ./src'
             }
         }
 
@@ -73,12 +66,31 @@ pipeline {
                 sh 'sleep 10'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'REGISTRY_USERNAME', passwordVariable: 'REGISTRY_PASSWORD')]) {
                     sh '''
-                    echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USERNAME" --password-stdin
-                    docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+                    echo "${REGISTRY_PASSWORD}" | docker login -u "${REGISTRY_USERNAME}" --password-stdin
+                    docker push "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
                     '''
+                }
+
+                script {
+                    image_sha = sh(script: 'docker inspect --format="{{index .RepoDigests 0}}" "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" | cut -d "@" -f 2', returnStdout: true).trim()
                 }
             }
         }
+
+        stage('Deploy') {
+            agent { 
+                label 'python' 
+            }
+            environment {
+                IMAGE_SHA = "${image_sha}"
+            }
+            steps {  
+                sh '''
+                echo "${IMAGE_SHA}"
+                helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" -f ./chart/values.yaml dummy-flask-app ./chart
+                '''
+            }
+        }            
     }
 }
 
