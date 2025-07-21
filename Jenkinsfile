@@ -160,7 +160,7 @@ pipeline {
 
             steps { 
                 sh '''
-                curl --fail "${HELM_RELEASE_NAME}-$(yq -r .name ./chart/Chart.yaml).${APP_NAMESPACE}.svc.cluster.local:8080 || exit 1"
+                wget --no-verbose --tries=5 --timeout=10 --spider "http://${HELM_RELEASE_NAME}-$(yq -r .name ./chart/Chart.yaml).${APP_NAMESPACE}.svc.cluster.local:8080/" || exit 1
                 '''
             }
         }               
