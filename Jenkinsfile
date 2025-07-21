@@ -143,7 +143,7 @@ pipeline {
                     // https://polarsquad.com/blog/check-your-helm-deployments
                     sh '''
                     helm upgrade --install \
-                                 --atomic --timeout 30 \
+                                 --atomic --timeout 30s \
                                  --set image.tag="${IMAGE_TAG}" \
                                  --set image.sha256="${IMAGE_SHA}" \
                                  --create-namespace --namespace "${APP_NAMESPACE}" \
