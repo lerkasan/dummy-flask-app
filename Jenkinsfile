@@ -3,11 +3,10 @@ pipeline {
         label 'dind' 
     }
 
-    // agent none
-
     environment {
         GIT_COMMIT_SHA = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true).trim()
         GIT_COMMIT_SHORT_SHA = sh (script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        APP_GIT_URL="https://github.com/lerkasan/dummy-flask-app.git"
         IMAGE_NAME = "dummy-flask-app"
         IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
@@ -16,7 +15,7 @@ pipeline {
         SONAR_ORGANIZATION = "lerkasan"
         SONAR_PROJECT_KEY = "lerkasan_dummy-flask-app"
         SONAR_HOST_URL = "https://sonarcloud.io"
-        NOTIFICATION_RECIPIENTS = "compcontrol@gmail.com"
+        NOTIFICATION_RECIPIENTS = "jenkins.notify.lerkasan@gmail.com"
     }
 
     stages {
@@ -25,7 +24,7 @@ pipeline {
                 label 'python' 
             }
             steps {
-                git url: 'https://github.com/lerkasan/dummy-flask-app.git',
+                git url: "${APP_GIT_URL}",
                     credentialsId: 'github',
                     branch: 'main'
             }
@@ -35,9 +34,7 @@ pipeline {
             agent { 
                 label 'python' 
             }
-
             steps {
-                // container('python') {    
                     sh '''
                     pip3 install -r src/requirements.txt
                     pytest tests/ --doctest-modules --junitxml=test-results.xml
@@ -46,15 +43,6 @@ pipeline {
                     '''
 
                     junit 'test-results.xml'
-
-                    // recordCoverage(tools: [[parser: 'JACOCO']],
-                    // id: 'jacoco', name: 'Coverage',
-                    // sourceCodeRetention: 'EVERY_BUILD',
-                    // sourceDirectories: [[path: 'src']],
-                    // qualityGates: [
-                    //     [threshold: 60.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true]
-                    // ])
-                // }
 
                     withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_TOKEN')]) { 
                     sh '''
@@ -160,7 +148,11 @@ pipeline {
 
             steps { 
                 sh '''
-                wget --no-verbose --tries=5 --timeout=10 --spider "http://${HELM_RELEASE_NAME}-$(yq -r .name ./chart/Chart.yaml).${APP_NAMESPACE}.svc.cluster.local:8080/" || exit 1
+                wget --no-verbose \
+                     --tries=5 \
+                     --timeout=10 \
+                     --spider \
+                     "http://${HELM_RELEASE_NAME}-$(yq -r .name ./chart/Chart.yaml).${APP_NAMESPACE}.svc.cluster.local:8080/" || exit 1
                 '''
             }
         }               
