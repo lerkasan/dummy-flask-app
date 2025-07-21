@@ -56,7 +56,7 @@ USER "$APP_USER"
 EXPOSE ${PORT:-8080}
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
-  CMD curl -f http://localhost:${PORT} || exit 1
+  CMD curl --fail "http://localhost:${PORT}" || exit 1
 
 # For development only
 # CMD ["flask", "run"]

@@ -12,9 +12,11 @@ pipeline {
         IMAGE_TAG = "${GIT_COMMIT_SHORT_SHA}-${env.BUILD_NUMBER}"
         REGISTRY = "docker.io/lerkasan"
         APP_NAMESPACE = "dummy-flask-app"
+        HELM_RELEASE_NAME = "dummy-flask-app"
         SONAR_ORGANIZATION = "lerkasan"
         SONAR_PROJECT_KEY = "lerkasan_dummy-flask-app"
         SONAR_HOST_URL = "https://sonarcloud.io"
+        NOTIFICATION_RECIPIENTS = "compcontrol@gmail.com"
     }
 
     stages {
@@ -93,12 +95,13 @@ pipeline {
                 }
 
                 script {
-                    image_sha = sh(script: 'docker inspect --format="{{index .RepoDigests 0}}" "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" | cut -d "@" -f 2', returnStdout: true).trim()
+                    image_sha = sh(script: 'docker inspect --format="{{index .RepoDigests 0}}" "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" | cut -d "@" -f 2', 
+                                   returnStdout: true).trim()
                 }
             }
         }
 
-        stage('Puplish Helm Chart') {
+        stage('Publish Helm Chart') {
             agent { 
                 label 'python' 
             }
@@ -137,13 +140,41 @@ pipeline {
                   passwordVariable: 'REGISTRY_PASSWORD'
                 )
               ]) {  
-                    sh 'helm upgrade --install --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace "${APP_NAMESPACE}" -f ./chart/values.yaml dummy-flask-app ./chart'
+                    // https://polarsquad.com/blog/check-your-helm-deployments
+                    sh '''
+                    helm upgrade --install --atomic --timeout 30 \
+                                 --set image.tag="${IMAGE_TAG}" \
+                                 --set image.sha256="${IMAGE_SHA}" \
+                                 --create-namespace --namespace "${APP_NAMESPACE}" \
+                                 -f ./chart/values.yaml "${HELM_RELEASE_NAME}" ./chart'
+                    '''
                 }    
             }
-        }            
+        }
+
+        stage('Health Check') {
+            agent { 
+                label 'python' 
+            }
+
+            steps { 
+                sh '''
+                curl --fail "${HELM_RELEASE_NAME}-$(yq -r .name ./chart/Chart.yaml).${APP_NAMESPACE}.svc.cluster.local:8080 || exit 1"
+                '''
+            }
+        }               
     }
+
+    post {
+        always {
+            emailext(
+                subject: "${PROJECT_NAME} - Build # ${BUILD_NUMBER} - ${BUILD_STATUS}",     
+                to: "${NOTIFICATION_RECIPIENTS}",                                                                         
+                body: "Check console output at $BUILD_URL to view the results."                
+            )
+
+            cleanWs()
+        }
+    }  
+
 }
-
-
-// https://medium.com/geekculture/jenkins-pipeline-python-and-docker-altogether-442d38119484
-
