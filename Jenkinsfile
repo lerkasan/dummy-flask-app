@@ -169,9 +169,9 @@ pipeline {
     post {
         always {
             emailext(
-                subject: "${PROJECT_NAME} - Build # ${BUILD_NUMBER} - ${BUILD_STATUS}",     
+                subject: "${env.JOB_BASE_NAME} - Build # ${env.BUILD_NUMBER} - ${env.BUILD_STATUS}",     
                 to: "${NOTIFICATION_RECIPIENTS}",                                                                         
-                body: "Check console output at $BUILD_URL to view the results."                
+                body: "Check console output at ${env.BUILD_URL} to view the results."                
             )
 
             cleanWs()
