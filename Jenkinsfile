@@ -142,7 +142,12 @@ pipeline {
               ]) {  
                     // https://polarsquad.com/blog/check-your-helm-deployments
                     sh '''
-                    helm upgrade --install --atomic --timeout 30 --set image.tag="${IMAGE_TAG}" --set image.sha256="${IMAGE_SHA}" --create-namespace --namespace "${APP_NAMESPACE}" -f ./chart/values.yaml "${HELM_RELEASE_NAME}" ./chart'
+                    helm upgrade --install \
+                                 --atomic --timeout 30 \
+                                 --set image.tag="${IMAGE_TAG}" \
+                                 --set image.sha256="${IMAGE_SHA}" \
+                                 --create-namespace --namespace "${APP_NAMESPACE}" \
+                                 -f ./chart/values.yaml "${HELM_RELEASE_NAME}" ./chart
                     '''
                 }    
             }
