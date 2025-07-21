@@ -38,8 +38,6 @@ pipeline {
                     sh '''
                     pip3 install -r src/requirements.txt
                     pytest tests/ --doctest-modules --junitxml=test-results.xml
-                    coverage run -m pytest
-                    coverage xml
                     '''
 
                     junit 'test-results.xml'
