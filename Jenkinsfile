@@ -109,6 +109,8 @@ pipeline {
                     helm package ./chart/
                     helm push "$(yq -r .name ./chart/Chart.yaml)-$(yq -r .version ./chart/Chart.yaml).tgz" "oci://registry-1.docker.io/${REGISTRY_USERNAME}"
                     '''
+                    
+                    archiveArtifacts artifacts: "$(yq -r .name ./chart/Chart.yaml)-$(yq -r .version ./chart/Chart.yaml).tgz"
                 }    
             }
         }   
